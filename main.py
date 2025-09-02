@@ -33,12 +33,12 @@ BILLING_CONFIG = {
 }
 
 # AWS Secrets Manager configuration
-AWS_SECRET_ARN = os.getenv("AWS_SECRET_ARN", "arn:aws:secretsmanager:us-east-1:440744223192:secret:MCP-Secrets-8brtVX")
+AWS_SECRET_ARN = os.getenv("AWS_SECRET_ARN")
 AWS_REGION = os.getenv("AWS_REGION", "us-east-1")
 AUTH_METHOD = os.getenv("AUTH_METHOD", "aws_secrets_manager")
 
 # Default API key for Claude Desktop (when no key is provided)
-DEFAULT_API_KEY = os.getenv("DEFAULT_API_KEY", "sk-test-abcdef1234567890")
+DEFAULT_API_KEY = os.getenv("DEFAULT_API_KEY")
 
 # Initialize security manager with AWS Secrets Manager
 logger.info("Initializing security manager with AWS Secrets Manager")

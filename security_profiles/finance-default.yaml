@@ -1,0 +1,211 @@
+# Finance Default Redaction Profile
+
+security:
+  profile_name: "finance-default"
+  version: "1.0"
+  description: "Default security profile for financial/billing MCP servers"
+  
+  # Size Limits
+  limits:
+    max_payload_size: 65536  # 64KB
+    max_text_length: 200
+    max_list_items: 20
+    max_nested_depth: 5
+  
+  # PII/PCI Redaction Rules
+  redaction:
+    # Credit Card / Payment Data
+    pan:
+      pattern: '\b\d{4}[-\s]?\d{4}[-\s]?\d{4}[-\s]?\d{4}\b'
+      mask_format: "####-####-####-{last4}"
+      fields: ["cardNumber", "creditCard", "paymentMethod.cardNumber"]
+    
+    cvv:
+      pattern: '\b\d{3,4}\b'
+      mask_format: "***"
+      fields: ["cvv", "securityCode", "paymentMethod.cvv"]
+    
+    # Bank Account Data
+    bank_account:
+      pattern: '\b\d{8,17}\b'
+      mask_format: "****{last4}"
+      fields: ["accountNumber", "bankAccount", "routingNumber"]
+    
+    # Personal Information
+    email:
+      pattern: '\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b'
+      mask_format: "{first_char}***@{domain}"
+      fields: ["email", "contactEmail", "billingEmail"]
+    
+    phone:
+      pattern: '(\+?1[-.\s]?)?\(?[0-9]{3}\)?[-.\s]?[0-9]{3}[-.\s]?[0-9]{4}'
+      mask_format: "***-***-{last4}"
+      fields: ["phone", "mobile", "telephone", "contactPhone"]
+    
+    ssn:
+      pattern: '\b\d{3}-?\d{2}-?\d{4}\b'
+      mask_format: "***-**-{last4}"
+      fields: ["ssn", "socialSecurityNumber", "taxId"]
+    
+    # Address Information
+    address:
+      pattern: '\b\d+\s+[A-Za-z\s]+(?:Street|St|Avenue|Ave|Road|Rd|Drive|Dr|Lane|Ln|Boulevard|Blvd)\b'
+      mask_format: "[address omitted]"
+      fields: ["address", "street", "billingAddress", "shippingAddress"]
+  
+  # Field Allowlists by Entity Type
+  allowlists:
+    account:
+      allowed:
+        - "id"
+        - "accountNumber"
+        - "name"
+        - "status"
+        - "balance"
+        - "currency"
+        - "createdDate"
+        - "updatedDate"
+        - "type"
+        - "industry"
+        - "parentAccountId"
+        - "accountManager"
+        - "email"
+        - "phone"
+        - "description"
+      blocked:
+        - "address"
+        - "billingContact"
+        - "soldToContact"
+        - "paymentMethod"
+        - "creditCard"
+        - "bankAccount"
+        - "ssn"
+        - "taxId"
+        - "notes"
+    
+    subscription:
+      allowed:
+        - "id"
+        - "name"
+        - "status"
+        - "subscriptionStartDate"
+        - "subscriptionEndDate"
+        - "termType"
+        - "autoRenew"
+        - "renewalTerm"
+        - "initialTerm"
+        - "accountId"
+        - "ratePlanId"
+      blocked:
+        - "billingContact"
+        - "soldToContact"
+        - "paymentMethod"
+        - "notes"
+        - "description"
+        - "customFields"
+    
+    invoice:
+      allowed:
+        - "id"
+        - "invoiceNumber"
+        - "status"
+        - "amount"
+        - "balance"
+        - "dueDate"
+        - "invoiceDate"
+        - "currency"
+        - "taxAmount"
+        - "totalAmount"
+        - "accountId"
+        - "subscriptionId"
+      blocked:
+        - "billToContact"
+        - "paymentMethod"
+        - "notes"
+        - "description"
+        - "lineItems"
+        - "customFields"
+    
+    payment:
+      allowed:
+        - "id"
+        - "paymentNumber"
+        - "status"
+        - "amount"
+        - "paymentDate"
+        - "currency"
+        - "accountId"
+        - "invoiceId"
+      blocked:
+        - "paymentMethod"
+        - "bankAccount"
+        - "creditCard"
+        - "notes"
+        - "description"
+    
+    default:
+      allowed:
+        - "id"
+        - "name"
+        - "status"
+        - "createdDate"
+        - "updatedDate"
+        - "type"
+      blocked:
+        - "email"
+        - "phone"
+        - "address"
+        - "paymentMethod"
+        - "notes"
+        - "description"
+        - "customFields"
+  
+  # Free Text Sanitization
+  sanitization:
+    # Suspicious patterns to block
+    suspicious_patterns:
+      - "ignore\\s+instructions"
+      - "list\\s+all\\s+customers?"
+      - "bypass\\s+security"
+      - "admin\\s+access"
+      - "root\\s+privileges"
+      - "delete\\s+all"
+      - "drop\\s+table"
+      - "<script"
+      - "javascript:"
+      - "eval\\("
+      - "exec\\("
+      - "system\\("
+      - "shell_exec"
+    
+    # Fields to sanitize
+    sanitize_fields:
+      - "notes"
+      - "description"
+      - "comments"
+      - "memo"
+      - "remarks"
+      - "customFields"
+    
+    # Actions for suspicious content
+    suspicious_action: "replace_with_placeholder"
+    placeholder_text: "[content omitted due to policy]"
+  
+  # Audit and Logging
+  audit:
+    enabled: true
+    log_removed_fields: true
+    log_redacted_content: false  # Don't log actual PII
+    log_suspicious_content: true
+    correlation_id_length: 8
+  
+  # Response Structure
+  response_format:
+    structured: true
+    include_meta: true
+    meta_fields:
+      - "fieldsRemoved"
+      - "redactionProfile"
+      - "corrId"
+      - "securityApplied"
+      - "auditLog"

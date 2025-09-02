@@ -1,0 +1,22 @@
+# Billing MCP Server Dependencies
+# ===============================
+
+# Core MCP Framework
+fastmcp==2.11.3
+mcp==1.12.4
+
+# HTTP Client
+httpx==0.28.1
+
+# Configuration
+python-dotenv==1.1.1
+
+# Security & Configuration
+PyYAML==6.0.2
+boto3==1.40.21
+
+# Development Tools (Optional)
+pytest==8.4.1
+pytest-asyncio==1.1.0
+black==25.1.0
+flake8==7.3.0
